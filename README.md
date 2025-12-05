@@ -160,7 +160,6 @@ Reading the [quick configuration guide](https://github.com/georchestra/datadir/b
 
 Also in production environment don't forget to change the file into the [secret/](secrets/) folder as they are default password.
 
-For [geoserver_privileged_user_passwd.txt](secrets/geoserver_privileged_user_passwd.txt) it needs to be the same that in the datadir : https://github.com/georchestra/datadir#3-steps-editing
 
 Most changes will require a service restart, except maybe updating viewer contexts & addons (`F5` will do).
 
