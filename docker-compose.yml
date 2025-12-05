@@ -20,8 +20,6 @@ volumes:
 secrets:
   slapd_password:
     file: ./secrets/slapd_password.txt
-  geoserver_privileged_user_passwd:
-    file: ./secrets/geoserver_privileged_user_passwd.txt
 
 services:
   copy-datadir:
@@ -63,13 +61,11 @@ services:
         condition: service_completed_successfully
     secrets:
       - slapd_password
-      - geoserver_privileged_user_passwd
     environment:
       - SLAPD_ORGANISATION=georchestra
       - SLAPD_DOMAIN=georchestra.org
       - SLAPD_PASSWORD_FILE=/run/secrets/slapd_password
       - SLAPD_PASSWORD=
-      - GEOSERVER_PRIVILEGED_USER_PASSWORD_FILE=/run/secrets/geoserver_privileged_user_passwd
       - SLAPD_LOG_LEVEL=32768 # See https://www.openldap.org/doc/admin24/slapdconfig.html#loglevel%20%3Clevel%3E
       - RUN_AS_UID=0
       - RUN_AS_GID=0
@@ -235,6 +231,24 @@ services:
       ASSETS_DIRECTORY_OVERRIDE: /etc/georchestra/datahub/assets
       CONFIG_DIRECTORY_OVERRIDE: /etc/georchestra/datahub/conf
       CUSTOM_SCRIPTS_DIRECTORY: /etc/georchestra/datahub/scripts
+    volumes:
+      - georchestra_datadir:/etc/georchestra
+    restart: always
+
+  metadata-editor:
+    image: geonetwork/geonetwork-ui-metadata-editor:latest
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -f http://localhost:80/metadata-editor/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    depends_on:
+      envsubst:
+        condition: service_completed_successfully
+    environment:
+      ASSETS_DIRECTORY_OVERRIDE: /etc/georchestra/metadata-editor/assets
+      CONFIG_DIRECTORY_OVERRIDE: /etc/georchestra/metadata-editor/conf
+      CUSTOM_SCRIPTS_DIRECTORY: /etc/georchestra/metadata-editor/scripts
     volumes:
       - georchestra_datadir:/etc/georchestra
     restart: always
