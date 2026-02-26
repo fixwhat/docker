@@ -51,7 +51,7 @@ services:
       envsubst:
         condition: service_completed_successfully
     volumes:
-      - postgresql_data:/var/lib/postgresql/data
+      - postgresql_data:/var/lib/postgresql
     restart: always
 
   ldap:
@@ -360,6 +360,10 @@ services:
       memlock:
         soft: -1
         hard: -1
+    deploy:
+      resources:
+        limits:
+          memory: 4g
     volumes:
       - esdata:/usr/share/elasticsearch/data
     healthcheck:
@@ -388,6 +392,9 @@ services:
       interval: 30s
       timeout: 10s
       retries: 10
+    environment:
+      ELASTICSEARCH_USERNAME: elastic
+      ELASTICSEARCH_PASSWORD: changeme
     env_file:
       - .envs-hosts
       - .envs-elastic
