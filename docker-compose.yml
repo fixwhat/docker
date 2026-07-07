@@ -1,5 +1,5 @@
-include:
-  - docker-compose.data-api.yml
+#include:
+#  - docker-compose.datafeeder.yml
 
 volumes:
   postgresql_data:
