@@ -62,7 +62,7 @@ x-airflow-common:
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__CORE__EXECUTION_API_SERVER_URL: 'http://airflow-apiserver:8081/airflow/execution/'
-    AIRFLOW__API__BASE_URL: 'http://localhost:8080/airflow/'
+    AIRFLOW__API__BASE_URL: 'https://georchestra-127-0-0-1.nip.io/airflow/'
     AIRFLOW__API__PORT: 8081
     AIRFLOW__DAG_PROCESSOR__MIN_FILE_PROCESS_INTERVAL: 10
     AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL: 30
@@ -84,6 +84,7 @@ x-airflow-common:
     PYOGRIO_USE_ARROW: 1
   volumes:
     - airflow-logs:/opt/airflow/logs
+    - ./config/datafeeder/airflow:/opt/airflow/files
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -91,8 +92,36 @@ x-airflow-common:
       condition: service_healthy
     postgres:
       condition: service_healthy
+    copy-datadir:
+      condition: service_completed_successfully
 
 services:
+  datafeeder-frontend:
+    image: georchestra/datafeeder-python-frontend:latest
+    environment:
+      - ENABLE_GEORCHESTRA_HEADER=true
+    ports:
+      - "8888:8080"
+    depends_on:
+      <<: *airflow-common-depends-on
+
+  datafeeder-backend:
+    image: georchestra/datafeeder-python-backend:latest
+    volumes:
+      - georchestra_datadir:/etc/georchestra
+    environment:
+      - DATADIR=/etc/georchestra
+      - DEBUG=true
+    depends_on:
+      <<: *airflow-common-depends-on
+      database:
+        condition: service_healthy
+    env_file:
+      - .envs-common
+      - .envs-ldap
+      - .envs-hosts
+      - .envs-database-georchestra
+
   postgres:
     image: postgres:16
     environment:
@@ -123,8 +152,6 @@ services:
   airflow-apiserver:
     <<: *airflow-common
     command: api-server
-    ports:
-      - "8081:8081"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8081/api/v2/version"]
       interval: 30s
@@ -331,3 +358,4 @@ services:
 volumes:
   postgres-db-volume:
   airflow-logs:
+
