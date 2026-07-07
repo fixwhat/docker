@@ -1,3 +1,4 @@
+# Uncomment to enable datafeeder
 #include:
 #  - docker-compose.datafeeder.yml
 
@@ -131,7 +132,7 @@ services:
     restart: always
 
   geonetwork:
-    image: georchestra/geonetwork:4.4.11-georchestra-01
+    image: georchestra/geonetwork:latest
     healthcheck:
       test: ["CMD-SHELL", "curl -s -f http://localhost:8080/geonetwork/srv/eng/catalog.search >/dev/null || exit 1"]
       interval: 30s
